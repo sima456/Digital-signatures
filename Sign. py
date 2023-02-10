@@ -1,0 +1,66 @@
+import argparse
+import hashlib
+import rsa
+# author ISHIMWE FABRICE & CHATGTP!!!!
+def create_signature(message, private_key):
+    # Generate the hash of the message
+    message_hash = hashlib.sha256(message.encode()).hexdigest()
+
+    # Use the private key to sign the message hash
+    signature = rsa.sign(message_hash.encode(), private_key, 'SHA-256')
+
+    return signature
+
+def verify_signature(message, signature, public_key):
+    # Generate the hash of the message
+    message_hash = hashlib.sha256(message.encode()).hexdigest()
+
+    # Use the public key to verify the signature
+    try:
+        rsa.verify(messagncode(), signature, public_key)
+        return True
+    except rsa.pkcs1.VerificationError:
+        return False
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Create and verify digital signatures')
+    parser.add_argument('-g', '--generate', action='store_true', help='Generate a new private/public key pair')
+    parser.add_argument('-s', '--sign', action='store_true', help='Sign a message')
+    parser.add_argument('-v', '--verify', action='store_true', help='Verify a signature')
+    parser.add_argument('-m', '--message', type=str, help='The message to sign or verify')
+    parser.add_argument('-n', '--name', type=str, help='The name of the signer')
+    parser.add_argument('-c', '--country', type=str, help='The country of the signer')
+    parser.add_argument('-e', '--email', type=str, help='The email of the signer')
+    parser.add_argument('-o', '--organization', type=str, help='The organization of the signer')
+    parser.add_argument('-k', '--key', type=str, help='The private key (for signing) or the public key (for verifying)')
+    parser.add_argument('-si', '--signature', type=str, help='The signature to verify')
+
+    args = parser.parse_args()
+
+    if args.generate:
+        # Generate a new private/public key pair
+        (private_key, public_key) = rsa.newkeys(512)
+        print(f'Private key: {private_key.save_pkcs1().decode()}')
+        print(f'Public key: {public_key.save_pkcs1().decode()}')
+    elif args.sign:
+        # Load the private key
+        private_key = rsa.PrivateKey.load_pkcs1(args.key.encode())
+
+        # Create the message string to sign
+        full_message = f'Name: {args.name}\nCountry: {args.country}\nEmail: {args.email}\nOrganization: {args.organization}\nMessage: {args.message}'
+
+        # Generate the signature
+        signature = create_signature(full_message, private_key)
+        print(f'Signature: {signature}')
+    elif args.verify:
+        # Load the public key
+        public_key = rsa.PublicKey.load_pkcs1(args.key.encode())
+
+        # Verify the signature
+        result = verify_signature(args.message, args.signature, public_key)
+        if result:
+            print('The signature is valid.')
+        else:
+            print('The signature is not valid.')
+    else:
+        parser.print_help()
